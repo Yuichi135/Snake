@@ -1,2 +1,2 @@
 # Snake
-Simple snake game in java
+Simple snake game in Java using JavaFX
