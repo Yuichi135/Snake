@@ -1,9 +1,9 @@
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -13,34 +13,52 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 
 public class SnakeGame extends Application {
-    private final static int GRID_HEIGHT = 12;
-    private final static int GRID_WIDTH = 12;
+    private final static int GRID_HEIGHT = 8;
+    private final static int GRID_WIDTH = 16;
     private final static int TILE_SIZE = 64;
     private final static int MAX_SCORE = GRID_WIDTH * GRID_WIDTH;
-
+    private final static int GRID_SPACING = 2;
     private final ArrayList<ArrayList<Tile>> tiles = new ArrayList<>();
     private GridPane grid = new GridPane();
     private Scene scene;
+    private Stage stage;
+    private MenuBar menuBar;
     private Tile[] body;
 
     @Override
     public void start(Stage stage) {
+        this.stage = stage;
+        this.stage.setResizable(false);
+        this.stage.setHeight(GRID_HEIGHT * TILE_SIZE + ((GRID_HEIGHT - 1) * GRID_SPACING) + 39 + 25);
+        this.stage.setWidth(GRID_WIDTH * TILE_SIZE + ((GRID_WIDTH) * GRID_SPACING) + 14);
+        this.stage.setTitle("Snake");
+        this.stage.show();
+
         this.initGame();
-
-        VBox vBox = new VBox();
-        vBox.getChildren().add(this.createMenu());
-        vBox.getChildren().add(this.grid);
-
-        this.scene = new Scene(vBox);
-        stage.setScene(this.scene);
-        stage.setTitle("Snake");
-        stage.show();
-
-        this.startGame();
+        this.showStartScreen();
     }
 
+    private void showStartScreen() {
+        if (menuBar == null)
+            this.createMenu();
 
-    private MenuBar createMenu() {
+        Label label = new Label("Snake game!");
+        Button startButton = new Button("Start");
+
+        VBox vbox = new VBox(label, startButton);
+        vbox.setAlignment(Pos.CENTER);
+        this.scene = new Scene(new VBox(this.menuBar, new BorderPane(vbox)));
+        this.stage.setScene(this.scene);
+
+        startButton.setOnAction(event -> this.startGame());
+    }
+
+    private void showGameScreen() {
+        this.scene = new Scene(new VBox(this.menuBar, this.grid));
+        this.stage.setScene(this.scene);
+    }
+
+    private void createMenu() {
         Menu menu = new Menu("Settings");
         MenuItem menuStart = new MenuItem("Start");
         MenuItem menuStop = new MenuItem("Stop");
@@ -58,6 +76,7 @@ public class SnakeGame extends Application {
 
         menuStop.setOnAction(event -> {
             System.out.println("Stop");
+            this.showStartScreen();
         });
 
         menuReset.setOnAction(event -> {
@@ -65,7 +84,7 @@ public class SnakeGame extends Application {
             this.reset();
         });
 
-        return menuBar;
+        this.menuBar = menuBar;
     }
 
     private void initGame() {
@@ -74,6 +93,8 @@ public class SnakeGame extends Application {
     }
 
     private void startGame() {
+        this.showGameScreen();
+
         this.scene.setOnKeyReleased(event -> {
             if (event.getText().chars().count() != 1)
                 return;
@@ -105,8 +126,8 @@ public class SnakeGame extends Application {
 
     private GridPane createGrid() {
         this.grid.getChildren().clear();
-        this.grid.setHgap(2);
-        this.grid.setVgap(2);
+        this.grid.setHgap(GRID_SPACING);
+        this.grid.setVgap(GRID_SPACING);
         this.tiles.clear();
         for (int x = 0; x < GRID_WIDTH; x++) {
             this.tiles.add(new ArrayList<>());
@@ -165,7 +186,6 @@ public class SnakeGame extends Application {
         throw new RuntimeException();
     }
 
-
     private void updateGrid() {
         for (ArrayList<Tile> tileList : tiles) {
             for (Tile tile : tileList) {
@@ -210,7 +230,6 @@ public class SnakeGame extends Application {
         }
         this.body = newBody;
     }
-
 
     public Tile[] getAdjacentTiles(Tile tile) {
         int tileX = tile.getX();
